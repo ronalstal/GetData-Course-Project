@@ -23,16 +23,33 @@ print(paste(zipFile, "was downloaded on:", file.info(zipFile)$mtime))
 #### -------------------------------------------------
 
 # read the features.txt file into a data.table
-features <- as.data.table(read.table(
+FEATURES <- as.data.table(read.table(
                 paste0(datadir, "features.txt"),
                 sep=" ",
-                col.names=c("feature","label"),
+                col.names=c("Feature","Label"),
                 stringsAsFactors=FALSE
            ))
 # class column used in read-colClasses: set all to NULL
-features <- features[, class:="NULL"]
-# use regex to set "mean()" and "std()" features to class="numeric"
-features <- features[grepl("std\\()|mean\\()", label), class:="numeric"]
+FEATURES <- FEATURES[, colClass:="NULL"]
+# use regex to set features ending by "mean()" or "std()" to class="numeric"
+FEATURES <- FEATURES[grepl("(mean|std)\\()-[XYZ]$", Label), colClass:="numeric"]
+
+# make sure the labels are valid col.names
+# remove the parens in Label, as they give invalid col.names
+FEATURES <- FEATURES[colClass=="numeric", Label:=sub("\\()", "", Label)]
+# change the dashes - to dots .
+FEATURES <- FEATURES[colClass=="numeric", Label:=gsub("\\-", ".", Label)]
+
+
+ACTIVITIES <- as.data.table(read.table(
+  paste0(datadir, "activity_labels.txt"),
+  sep=" ",
+  col.names=c("Act","Activity"),
+  stringsAsFactors=FALSE
+))
+setkey(ACTIVITIES, Act)
+
+
 
 #### define function read_data(type)
 #### -------------------------------
@@ -48,15 +65,18 @@ read_data <- function(type){
     fileX <- paste0(type_dir, "/X_", type, ".txt")
     fileY <- paste0(type_dir, "/y_", type, ".txt")
     fileS <- paste0(type_dir, "/subject_", type, ".txt")
-    # read and join the files
+    # read the files, put them into DT
     DT <- as.data.table(read.table(
-             fileX,
-             colClasses = as.vector(features[ ,class]),
-             col.names = as.vector(features[ ,label])
+      fileX,
+      colClasses = as.vector(FEATURES[ ,colClass]), # only wanted cols, others are NULL
+      col.names = as.vector(FEATURES[ ,Label])      # feature labes as col names
     ))
     Y <- as.data.table(read.table(fileY, col.names=c("Act")))
+    setkey(Y, Act)
+    Y <- Y[ACTIVITIES]  # joins in the labels as col "Activity"
     S <- as.data.table(read.table(fileS, col.names=c("Subject")))
-    DT <- DT[ ,`:=`(ActivityNum=Y[ ,Act],Subject=S[ ,Subject])]
+    # put the columns from Y and S into DT
+    DT <- DT[ ,`:=`(Activity=Y[ ,Activity], Subject=S[ ,Subject])]
     # return DT
     return(DT)
 }
@@ -67,5 +87,15 @@ read_data <- function(type){
 TEST <- read_data("test")
 TRAIN <- read_data("train")
 DATA <- rbindlist(list(TEST,TRAIN))
+#rm(TEST, TRAIN, features)  # free memory
+
+colOrder <- c("Activity", "Subject", as.vector(FEATURES[colClass=="numeric", Label]))
+setcolorder(DATA, colOrder)
+setkeyv(DATA, c("Activity", "Subject"))
+
+#### calculate the averages and write the file to be submitted
+#### ---------------------------------------------------------
+
+
 
 
