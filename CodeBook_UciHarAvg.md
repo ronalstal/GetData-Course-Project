@@ -1,0 +1,86 @@
+# Code Book for UciHarAvg Dataset
+Ronald Stalder  
+19-12-2014  
+
+### Synopsis
+
+The dataset *Human Activity Recognition Using Smartphones* published [here](http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones#) contains data from the embedded accelerometer and gyroscope, gathered by an experiment where 30 subjects performed 6 different activities each.
+
+From this dataset, from both the *test* and *training* data, extract the features containing the mean and the standard deviation (std) for each type of mesurement and space orientation (X, Y, Z) and calculate the average of each feature grouped by activity and subject.
+
+The resulting dataset *UciHarAvg.txt* contains a matrix in **wide format**, storing the averages of each feature in a column, labeled by the name of the feature, and the rows being the group of activity and subject.
+
+&nbsp;  
+
+### Input
+
+The **UCI HAR Dataset** (obtain it from [here](http://archive.ics.uci.edu/ml/machine-learning-databases/00240/)) contains the following files (ignoring the "Inertial Signals" subdirectories):
+
+
+```
+##  [1] "UCI HAR Dataset/activity_labels.txt"    
+##  [2] "UCI HAR Dataset/features.txt"           
+##  [3] "UCI HAR Dataset/features_info.txt"      
+##  [4] "UCI HAR Dataset/README.txt"             
+##  [5] "UCI HAR Dataset/test/"                  
+##  [6] "UCI HAR Dataset/test/subject_test.txt"  
+##  [7] "UCI HAR Dataset/test/X_test.txt"        
+##  [8] "UCI HAR Dataset/test/y_test.txt"        
+##  [9] "UCI HAR Dataset/train/"                 
+## [10] "UCI HAR Dataset/train/subject_train.txt"
+## [11] "UCI HAR Dataset/train/X_train.txt"      
+## [12] "UCI HAR Dataset/train/y_train.txt"
+```
+&nbsp;  
+
+- the **test** and **train** subdirectories contain the data separated as a *test dataset* and a *training dataset* optained by separating randomly 30%/70% of the subjects of the experiment.   
+
+- the **subject_... .txt** files contain, for each mesurment (row), the *subject* as an anonimyzed integer value  
+
+- the **y_... .txt** files contain, for each mesurment (row), the *activity code* as an integer value  
+
+- the **X_... .txt** files contain a matrix of mesurments (rows) with a feature vector as columns. Each feature (column) contains a single numeric value, the dataset therfore is in **tidy wide form**.  
+
+- the file **activity_labels.txt** contains a matrix of two columns: the activity code and it's label.  
+
+- the file **features.txt** contains a matrix of two columns: the column number under which the feature's values are stored in the X_ files and it's label, naming the feature. A description of the features is available in **features_info.txt**.  
+
+- nothing is said about the **units** of the mesurements. There are accelerations and angular velocities, but no information about the units in which they were measured.
+
+- all of these files can be read in easily; rows are separated by newlines `x'0A'`, columns by spaces. There are no comment lines and no N/A values. Numeric values follow the `C locale` convention (decimal points are points).
+
+&nbsp;  
+
+### Data Processing
+
+- read the file **activity_labels.txt** into a table.  
+
+- read the file **features.txt** into a table. Subset the table by features to be retained:  
+    - select lines containig `mean()-[XYZ]` or `std()-[XYZ]`, where `[XYZ]` 
+      stands for either X, Y or Z. 
+    - transform the label into a valid column name, e.g. as understood by `R read.table()`:  
+      eliminate parens `()` and substitute dashes by points (your system may have other requirements).  
+&nbsp;  
+- read both the **test** and **train** datasets, then merge them into a single table:  
+    - read the activities from **y_... .txt** and substitute the acivity code 
+      by it's label, as column "activity". 
+    - read the subjects from **subject_... .txt** as the second column "subject" of the table. 
+    - read the feature vectors from **X_... .txt** as the further columns of the table:  
+            - ignore the columns not contained in the feature table  
+            - add column names according to the feature table  
+&nbsp;  
+- calculate the average of each feature grouped by "activtiy" and "subject". The resulting table, **UciHarAvg**, is our output, stored in the file **UciHarAvg.txt**.  
+
+&nbsp;  
+
+### Output
+
+- the dataset **UciHarAvg.txt** contains a matrix: rows are separated by newlines `x'0A'`, columns by spaces. There are no comment lines and no N/A values. Numeric values follow the `C locale` convention (decimal points are points). The first line contains the column headers.  
+&nbsp;  
+- the dataset is in **tiny data wide format**. Features are stored in columns and only contain data about a single informational unit. Rows contain exactly one value per column.  
+&nbsp;  
+- the dataset contains the following columns:  
+
+
+
+
