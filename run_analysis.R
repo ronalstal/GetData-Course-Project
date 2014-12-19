@@ -72,11 +72,9 @@ read_data <- function(type){
       col.names = as.vector(FEATURES[ ,Label])      # feature labes as col names
     ))
     Y <- as.data.table(read.table(fileY, col.names=c("Act")))
-    setkey(Y, Act)
-    Y <- Y[ACTIVITIES]  # joins in the labels as col "Activity"
     S <- as.data.table(read.table(fileS, col.names=c("Subject")))
     # put the columns from Y and S into DT
-    DT <- DT[ ,`:=`(Activity=Y[ ,Activity], Subject=S[ ,Subject])]
+    DT <- DT[ ,`:=`(Act=Y[ ,Act], Subject=S[ ,Subject])]
     # return DT
     return(DT)
 }
@@ -89,13 +87,31 @@ TRAIN <- read_data("train")
 DATA <- rbindlist(list(TEST,TRAIN))
 #rm(TEST, TRAIN, features)  # free memory
 
+# Join in Activity labels (as col "Activity")
+setkey(DATA, "Act")
+DATA <- DATA[ACTIVITIES][ ,Act:=NULL]
+
+
+setkeyv(DATA, c("Activity", "Subject"))
 colOrder <- c("Activity", "Subject", as.vector(FEATURES[colClass=="numeric", Label]))
 setcolorder(DATA, colOrder)
-setkeyv(DATA, c("Activity", "Subject"))
 
 #### calculate the averages and write the file to be submitted
 #### ---------------------------------------------------------
 
+# calculate average of each feature grouped by Activity and Subject
+AVG <- DATA[ ,lapply(.SD, mean), by=list(Activity, Subject)]
 
+if ( dim(AVG)[1] != 180) {
+  msg <- paste("the resulting table has", dim(AVG)[1], "rows !!")
+  stop(msg)
+}
 
+# write the new table to a text file
+outFil <- "UciHarAvg.txt"
+setkeyv(AVG, c("Activity", "Subject"))
+write.table(AVG,
+            file=outFil,
+            sep=" ", row.names=FALSE
+  )
 

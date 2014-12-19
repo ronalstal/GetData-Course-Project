@@ -45,10 +45,20 @@ Following the DRY principle ("Don't Repeat Yourself"), a function is defined to 
 - `TEST <- read_data("test")`
 - `TRAIN <- read_data("train")`
 - "merge" these two into data table `DATA` (just append them using `rbindlist()`)
+- join in the labels from `ACTIVITIES`  
 - set the column order to have Activity, Subject, features....  
 - set the key of the table to the first two columns  
 
 #### calculate the averages and write the file to be submitted
+
+About computing the average of each of many columns, see `vignette("datatable-faq")` Q 2.1  
+
+Verify that the resulting table has 180 rows (all 6 activities by all 30 people)  
+
+Write the resulting table to the file **UciHarAvg.txt** setting:  
+- line separators to newline (default)  
+- column separator to spaces  
+- row.names=FALSE (or the file will contain the row number as a name)  
 
 
 
