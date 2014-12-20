@@ -53,7 +53,7 @@ Following the DRY principle ("Don't Repeat Yourself"), a function is defined to 
 
 About computing the average of each of many columns, see `vignette("datatable-faq")` Q 2.1  
 
-Verify that the resulting table has 180 rows (all 6 activities by all 30 people)  
+Verify that the resulting table has 180 rows (all 6 activities by all 30 subjects)  
 
 Write the resulting table to the file **UciHarAvg.txt** setting:  
 - line separators to newline (default)  
